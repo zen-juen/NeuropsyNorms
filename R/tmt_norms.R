@@ -10,6 +10,11 @@
 #' @examples
 #' out1 <- tmt_norms(education=10, age=55, trailsA=30, trailsB=40);
 #' out2 <- tmt_norms(education=10, age=91, trailsA=30, trailsB=40, source="Whittle2007_US")
+#' @import tidyverse
+#' @import readxl
+#' @import readr
+#' @import tidyr
+#' @import stringr
 #' @export
 
 tmt_norms <- function(education, age, male=TRUE,
@@ -18,15 +23,15 @@ tmt_norms <- function(education, age, male=TRUE,
                       trailsB=NA){
 
   #  Load necessary packages and functions
-  if (!exists("check_packages")) {
-    source("check_packages.R")
-    check_packages(c("tidyverse", "readxl", "readr", "tidyr", "stringr"))
-  }
-  if (!exists("extract_demographic")) {
-    source("extract_demographic.R")
-  }
-  if (!exists("extract_descriptors")) {
-    source("extract_descriptors.R")
+  # if (!exists("check_packages")) {
+  #   source("check_packages.R")
+  #   check_packages(c("tidyverse", "readxl", "readr", "tidyr", "stringr"))
+  # }
+  # if (!exists("extract_demographic")) {
+  #   source("extract_demographic.R")
+  # }
+  # if (!exists("extract_descriptors")) {
+  #   source("extract_descriptors.R")
   }
   
   # Get normative sample
