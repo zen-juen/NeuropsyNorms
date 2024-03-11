@@ -32,7 +32,7 @@ tmt_norms <- function(education, age, male=TRUE,
   # }
   # if (!exists("extract_descriptors")) {
   #   source("extract_descriptors.R")
-  }
+
   
   # Get normative sample
   data <- read_excel("../Database/TMT_Norms.xlsx", sheet=source, col_names=FALSE)
@@ -94,7 +94,7 @@ tmt_norms <- function(education, age, male=TRUE,
   
   extract_descriptors(out)
   
-}
+  }
 
 
 
