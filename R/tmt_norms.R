@@ -10,11 +10,10 @@
 #' @examples
 #' out1 <- tmt_norms(education=10, age=55, trailsA=30, trailsB=40);
 #' out2 <- tmt_norms(education=10, age=91, trailsA=30, trailsB=40, source="Whittle2007_US")
-#' @import tidyverse
-#' @import readxl
-#' @import readr
-#' @import tidyr
-#' @import stringr
+#' @importFrom readxl read_excel
+#' @importFrom readr parse_number 
+#' @importFrom tidyr pivot_wider
+#' @importFrom stringr str_extract
 #' @export
 
 tmt_norms <- function(education, age, male=TRUE,
@@ -80,10 +79,9 @@ tmt_norms <- function(education, age, male=TRUE,
     } 
   } else if (source == "Whittle2007_US") {
     ref_group <- df[df$Age == age, ]
-    ref_group <- ref_group %>%
-      pivot_wider(names_from = Test,
-                  names_glue = "{Test}_{.value}",
-                  values_from = Mean)
+    ref_group <- pivot_wider(ref_group, names_from = Test,
+                             names_glue = "{Test}_{.value}",
+                             values_from = Mean)
   }
   
   colnames(ref_group) <- tolower(colnames(ref_group))
