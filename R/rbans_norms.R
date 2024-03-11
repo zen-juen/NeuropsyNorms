@@ -1,0 +1,311 @@
+#' Computes RBANS norms.
+#'
+#' @param education Education in years.
+#' @param age Age in years.
+#' @param male TRUE or FALSE.
+#' @param source Only computes `Collinson2014_Singapore` norms for now.
+#' @param age_adjusted TRUE or FALSE.
+#' @param education_adjusted TRUE or FALSE.
+#' @return A table of standardised scores and their descriptors. 
+#' @examples
+#' out1 <- rbans_norms(education=10, age=55, listlearning=10, storymemory=15, age_adjusted=TRUE, education_adjusted=TRUE);
+#' out2 <- rbans_norms(education=10, age=55, listlearning=10, storymemory=15, age_adjusted=TRUE, education_adjusted=FALSE);
+#' @export
+
+rbans_norms <- function(education, age, male=TRUE,
+                        source="Collinson2014_Singapore",
+                        age_adjusted=TRUE,
+                        education_adjusted=TRUE,
+                        listlearning=NA, 
+                        storymemory=NA,
+                        figurecopy=NA,
+                        lineorientation=NA,
+                        picturenaming=NA,
+                        semanticfluency=NA,
+                        digitspan=NA,
+                        coding=NA,
+                        listrecall=NA,
+                        listrecog=NA,
+                        storyrecall=NA,
+                        figurerecall=NA,
+                        index_memory_immediate=NA, index_memory_delayed=NA, index_visuospatial=NA,
+                        index_language=NA, index_attention=NA, index_total=NA){
+  
+  #  Load necessary packages and functions
+  if (!exists("check_packages")) {
+    source("check_packages.R")
+    check_packages(c("tidyverse", "readxl", "stringr", "readr"))
+  }
+  if (!exists("extract_demographic")) {
+    source("extract_demographic.R")
+  }
+  if (!exists("extract_descriptors")) {
+    source("extract_descriptors.R")
+  }
+
+  # Get normative sample
+  if (age_adjusted & education_adjusted) {
+    sheet = paste0(source, " - AgeEd")
+    p = "Scores are age- and education-adjusted. Warning: groups may be even smaller after education and age group stratification. Small ``N`` of 4 for group aged ≥75 with >10 years of education."
+  } else if (age_adjusted) {
+    sheet = paste0(source, " - Age")
+    p = "Scores are age-adjusted."
+  }
+  
+  data <- read_excel("../Database/RBANS_Norms.xlsx", sheet=sheet, col_names=FALSE)
+  
+  if (source == "Collinson2014_Singapore") {
+    print(paste("Collinson et al. (2014) study ``N`` = 1147 in Elderly Chinese individuals residing in Singapore aged between 54-≥75, of education (years) 0 to >10.", p, "Tests were administered in different local languages (not taken into account in the norms reported)."))
+  } else {
+    print(paste("Error: Other sources/norms not available at the moment."))
+  }
+  
+  # Get education and age groups corresponding to normative sample
+  demographic <- extract_demographic(education, age, male, source)
+  education <- demographic[[1]]
+  age <- demographic[[2]]
+
+  # tidy df
+  df <- t(data)
+  row.names(df) <- NULL
+  colnames(df) <- df[1, ]
+  df <- as.data.frame(df[-1, ])
+  
+  # Get reference
+  if (age_adjusted & education_adjusted) {
+    ref_group <- df[df$`Education (Years)` == education & df$Age == age, ]
+  } else if (age_adjusted) {
+    ref_group <- df[df$Age == age, ]
+  }
+  colnames(ref_group) <- tolower(colnames(ref_group))
+  
+  # Compute standardised scores
+  out <- .compute_rbans_scores(ref_group,
+                               listlearning, storymemory, figurecopy, lineorientation,
+                               picturenaming, semanticfluency, digitspan,
+                               coding, listrecall, listrecog, storyrecall, figurerecall,
+                               index_memory_immediate, index_memory_delayed,
+                               index_visuospatial, index_language,
+                               index_attention, index_total)
+  return(out)
+}
+
+
+
+# Utility functions -------------------------------------------------------
+
+.compute_rbans_scores <- function(reference,
+                                  listlearning=NA, 
+                                  storymemory=NA,
+                                  figurecopy=NA,
+                                  lineorientation=NA,
+                                  picturenaming=NA,
+                                  semanticfluency=NA,
+                                  digitspan=NA,
+                                  coding=NA,
+                                  listrecall=NA,
+                                  listrecog=NA,
+                                  storyrecall=NA,
+                                  figurerecall=NA,
+                                  index_memory_immediate=NA, index_memory_delayed=NA, index_visuospatial=NA,
+                                  index_language=NA, index_attention=NA, index_total=NA){
+  
+  
+  # List Learning
+  if (!is.na(listlearning)) {
+    listlearning_mean = parse_number(reference$`list learning`)
+    listlearning_sd = str_extract(reference$`list learning`, "(?<=\\().*(?=\\))")
+    listlearning_zscore = (listlearning - as.numeric(listlearning_mean)) / as.numeric(listlearning_sd)
+  } else {
+    listlearning_zscore = NA
+  }
+  
+  # Story Memory
+  if (!is.na(storymemory)) {
+    storymemory_mean = parse_number(reference$`story memory`)
+    storymemory_sd = str_extract(reference$`story memory`, "(?<=\\().*(?=\\))")
+    storymemory_zscore = (storymemory - as.numeric(storymemory_mean)) / as.numeric(storymemory_sd)
+  } else {
+    storymemory_zscore = NA
+  }
+  
+  # Figure Copy
+  if (!is.na(figurecopy)) {
+    figurecopy_mean = parse_number(reference$`figure copy`)
+    figurecopy_sd = str_extract(reference$`figure copy`, "(?<=\\().*(?=\\))")
+    figurecopy_zscore = (figurecopy - as.numeric(figurecopy_mean)) / as.numeric(figurecopy_sd)
+  } else {
+    figurecopy_zscore = NA
+  }
+  
+  # Line Orientation
+  if (!is.na(lineorientation)) {
+    lineorientation_mean = parse_number(reference$`line orientation`)
+    lineorientation_sd = str_extract(reference$`line orientation`, "(?<=\\().*(?=\\))")
+    lineorientation_zscore = (lineorientation - as.numeric(lineorientation_mean)) / as.numeric(lineorientation_sd)
+  } else {
+    lineorientation_zscore = NA
+  }
+  
+  # Picture Naming
+  if (!is.na(picturenaming)) {
+    picturenaming_mean = parse_number(reference$`picture naming`)
+    picturenaming_sd = str_extract(reference$`picture naming`, "(?<=\\().*(?=\\))")
+    picturenaming_zscore = (picturenaming - as.numeric(picturenaming_mean)) / as.numeric(picturenaming_sd)
+  } else {
+    picturenaming_zscore = NA
+  }
+  
+  # Semantic fluency
+  if (!is.na(semanticfluency)) {
+    semanticfluency_mean = parse_number(reference$`semantic fluency`)
+    semanticfluency_sd = str_extract(reference$`semantic fluency`, "(?<=\\().*(?=\\))")
+    semanticfluency_zscore = (semanticfluency - as.numeric(semanticfluency_mean)) / as.numeric(semanticfluency_sd)
+  } else {
+    semanticfluency_zscore = NA
+  }
+  
+  # Digit span
+  if (!is.na(digitspan)) {
+    digitspan_mean = parse_number(reference$`digit span`)
+    digitspan_sd = str_extract(reference$`digit span`, "(?<=\\().*(?=\\))")
+    digitspan_zscore = (digitspan - as.numeric(digitspan_mean)) / as.numeric(digitspan_sd)
+  } else {
+    digitspan_zscore = NA
+  }
+  
+  # Coding
+  if (!is.na(coding)) {
+    coding_mean = parse_number(reference$`coding`)
+    coding_sd = str_extract(reference$`coding`, "(?<=\\().*(?=\\))")
+    coding_zscore = (coding - as.numeric(coding_mean)) / as.numeric(coding_sd)
+  } else {
+    coding_zscore = NA
+  }
+  
+  # List recall
+  if (!is.na(listrecall)) {
+    listrecall_mean = parse_number(reference$`list recall`)
+    listrecall_sd = str_extract(reference$`list recall`, "(?<=\\().*(?=\\))")
+    listrecall_zscore = (listrecall - as.numeric(listrecall_mean)) / as.numeric(listrecall_sd)
+  } else {
+    listrecall_zscore = NA
+  }
+  
+  # List recognition
+  if (!is.na(listrecog)) {
+    listrecog_mean = parse_number(reference$`list recognition`)
+    listrecog_sd = str_extract(reference$`list recognition`, "(?<=\\().*(?=\\))")
+    listrecog_zscore = (listrecog - as.numeric(listrecog_mean)) / as.numeric(listrecog_sd)
+  } else {
+    listrecog_zscore = NA
+  }
+  
+  # Story recall
+  if (!is.na(storyrecall)) {
+    storyrecall_mean = parse_number(reference$`story recall`)
+    storyrecall_sd = str_extract(reference$`story recall`, "(?<=\\().*(?=\\))")
+    storyrecall_zscore = (storyrecall - as.numeric(storyrecall_mean)) / as.numeric(storyrecall_sd)
+  } else {
+    storyrecall_zscore = NA
+  }
+  
+  # Figure recall
+  if (!is.na(figurerecall)) {
+    figurerecall_mean = parse_number(reference$`figure recall`)
+    figurerecall_sd = str_extract(reference$`figure recall`, "(?<=\\().*(?=\\))")
+    figurerecall_zscore = (figurerecall - as.numeric(figurerecall_mean)) / as.numeric(figurerecall_sd)
+  } else {
+    figurerecall_zscore = NA
+  }
+  
+  # Indices
+  if (!is.na(index_memory_immediate)) {
+    memory_immediate_mean = parse_number(reference$`immediate memory`)
+    memory_immediate_sd = str_extract(reference$`immediate memory`, "(?<=\\().*(?=\\))")
+    memory_immediate_zscore = (index_memory_immediate - as.numeric(memory_immediate_mean)) / as.numeric(memory_immediate_sd)
+  } else {
+    memory_immediate_zscore = NA
+  }
+  
+  if (!is.na(index_memory_delayed)) {
+    memory_delayed_mean = parse_number(reference$`delayed memory`)
+    memory_delayed_sd = str_extract(reference$`delayed memory`, "(?<=\\().*(?=\\))")
+    memory_delayed_zscore = (index_memory_delayed - as.numeric(memory_delayed_mean)) / as.numeric(memory_delayed_sd)
+  } else {
+    memory_delayed_zscore = NA
+  }
+  
+  if (!is.na(index_visuospatial)) {
+    visuospatial_mean = parse_number(reference$`visuospatial/constructional`)
+    visuospatial_sd = str_extract(reference$`visuospatial/constructional`, "(?<=\\().*(?=\\))")
+    visuospatial_zscore = (index_visuospatial - as.numeric(visuospatial_mean)) / as.numeric(visuospatial_sd)
+  } else {
+    visuospatial_zscore = NA
+  }
+  
+  if (!is.na(index_language)) {
+    language_mean = parse_number(reference$`language`)
+    language_sd = str_extract(reference$`language`, "(?<=\\().*(?=\\))")
+    language_zscore = (index_language - as.numeric(language_mean)) / as.numeric(language_sd)
+  } else {
+    language_zscore = NA
+  }
+  
+  if (!is.na(index_attention)) {
+    attention_mean = parse_number(reference$`attention`)
+    attention_sd = str_extract(reference$`attention`, "(?<=\\().*(?=\\))")
+    attention_zscore = (index_attention - as.numeric(attention_mean)) / as.numeric(attention_sd)
+  } else {
+    attention_zscore = NA
+  }
+  
+  if (!is.na(index_total)) {
+    total_mean = parse_number(reference$`total scale`)
+    total_sd = str_extract(reference$`total scale`, "(?<=\\().*(?=\\))")
+    total_zscore = (index_total - as.numeric(total_mean)) / as.numeric(total_sd)
+  } else {
+    total_zscore = NA
+  }
+  
+  # Prepare output
+  subtests_zscores <- list(
+    ListLearning = c(listlearning_zscore, listlearning),
+    StoryMemory = c(storymemory_zscore, storymemory),
+    FigureCopy = c(figurecopy_zscore, figurecopy),
+    LineOrientation = c(lineorientation_zscore, lineorientation),
+    PictureNaming = c(picturenaming_zscore, picturenaming),
+    SemanticFluency = c(semanticfluency_zscore, semanticfluency),
+    DigitSpan = c(digitspan_zscore, digitspan),
+    Coding = c(coding_zscore, coding),
+    ListRecall = c(listrecall_zscore, listrecall),
+    ListRecognition = c(listrecog_zscore, listrecog),
+    StoryRecall = c(storyrecall_zscore, storyrecall),
+    FigureRecall = c(figurerecall_zscore, figurerecall)
+  ) 
+  
+   index_zscores <- list(
+     ImmediateMemory = c(memory_immediate_zscore, index_memory_immediate),
+     DelayedMemory = c(memory_delayed_zscore, index_memory_delayed),
+     Visuospatial = c(visuospatial_zscore, index_visuospatial),
+     Language = c(language_zscore, index_language),
+     Attention = c(attention_zscore, index_attention),
+     Total = c(total_zscore, index_total)
+   )
+  
+  out1 <- as.data.frame(subtests_zscores)
+  row.names(out1) <- c("Z-scores", "Raw Scores")
+  out1 <- extract_descriptors(out1)
+  
+  out2 <- as.data.frame(index_zscores)
+  row.names(out2) <- c("Z-scores", "Raw Scores")
+  out2 <- extract_descriptors(out2)
+  
+  return(list(Subtests = out1, Indices = out2))
+}
+
+
+
+
+
+
