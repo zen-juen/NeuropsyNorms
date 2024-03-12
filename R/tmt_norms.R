@@ -10,6 +10,7 @@
 #' @examples
 #' out1 <- tmt_norms(education=10, age=55, trailsA=30, trailsB=40);
 #' out2 <- tmt_norms(education=10, age=91, trailsA=30, trailsB=40, source="Whittle2007_US")
+#'
 #' @importFrom readxl read_excel
 #' @importFrom readr parse_number 
 #' @importFrom tidyr pivot_wider
@@ -34,7 +35,7 @@ tmt_norms <- function(education, age, male=TRUE,
 
   
   # Get normative sample
-  data <- read_excel("../Database/TMT_Norms.xlsx", sheet=source, col_names=FALSE)
+  data <- readxl::read_excel("../Database/TMT_Norms.xlsx", sheet=source, col_names=FALSE)
   
   if (source == "Tombaugh2004_Canada") {
     print(paste("Tombaugh (2004) study ``N`` = 911 in English-speaking individuals residing in Canada aged between 18 - 89, of education (in years) of 0-12 and >12. Tests were administered in English. Scores are age-adjusted for persons between ages 18 - 54, and both age- and education-adjusted for ages 55-89."))
@@ -79,9 +80,9 @@ tmt_norms <- function(education, age, male=TRUE,
     } 
   } else if (source == "Whittle2007_US") {
     ref_group <- df[df$Age == age, ]
-    ref_group <- pivot_wider(ref_group, names_from = Test,
-                             names_glue = "{Test}_{.value}",
-                             values_from = Mean)
+    ref_group <- tidyr::pivot_wider(ref_group, names_from = Test,
+                                    names_glue = "{Test}_{.value}",
+                                    values_from = Mean)
   }
   
   colnames(ref_group) <- tolower(colnames(ref_group))
@@ -109,14 +110,14 @@ tmt_norms <- function(education, age, male=TRUE,
   # Trails A
   if (!is.na(trailsA)) {
     if (source == "Whittle2007_US") {
-      trailsA_mean <- parse_number(reference$`trail a (s)_mean`)
+      trailsA_mean <- readr::parse_number(reference$`trail a (s)_mean`)
       trailsA_mean <- trailsA_mean[!is.na(trailsA_mean)]
-      trailsA_sd <- str_extract(reference$`trail a (s)_mean`, "(?<=\\().*(?=\\))")
+      trailsA_sd <- stringr::str_extract(reference$`trail a (s)_mean`, "(?<=\\().*(?=\\))")
       trailsA_sd <- trailsA_sd[!is.na(trailsA_sd)]
       trailsA_zscore = (as.numeric(trailsA_mean) - trailsA) / as.numeric(trailsA_sd)
     } else {
-      trailsA_mean = parse_number(reference$`trail a (s)`)
-      trailsA_sd = str_extract(reference$`trail a (s)`, "(?<=\\().*(?=\\))")
+      trailsA_mean = readr::parse_number(reference$`trail a (s)`)
+      trailsA_sd = stringr::str_extract(reference$`trail a (s)`, "(?<=\\().*(?=\\))")
       trailsA_zscore = (as.numeric(trailsA_mean) - trailsA) / as.numeric(trailsA_sd)
     }
   } else {
@@ -126,14 +127,14 @@ tmt_norms <- function(education, age, male=TRUE,
   # Trails B
   if (!is.na(trailsB)) {
     if (source == "Whittle2007_US") {
-      trailsB_mean <- parse_number(reference$`trail b (s)_mean`)
+      trailsB_mean <- readr::parse_number(reference$`trail b (s)_mean`)
       trailsB_mean <- trailsB_mean[!is.na(trailsB_mean)]
-      trailsB_sd <- str_extract(reference$`trail b (s)_mean`, "(?<=\\().*(?=\\))")
+      trailsB_sd <- stringr::str_extract(reference$`trail b (s)_mean`, "(?<=\\().*(?=\\))")
       trailsB_sd <- trailsB_sd[!is.na(trailsB_sd)]
       trailsB_zscore = (as.numeric(trailsB_mean) - trailsB) / as.numeric(trailsB_sd)
     } else {
-      trailsB_mean = parse_number(reference$`trail b (s)`)
-      trailsB_sd = str_extract(reference$`trail b (s)`, "(?<=\\().*(?=\\))")
+      trailsB_mean = readr::parse_number(reference$`trail b (s)`)
+      trailsB_sd = stringr::str_extract(reference$`trail b (s)`, "(?<=\\().*(?=\\))")
       trailsB_zscore = (as.numeric(trailsB_mean) - trailsB) / as.numeric(trailsB_sd)
     }
   } else {
