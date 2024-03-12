@@ -3,9 +3,9 @@
     "path": "~/Documents/try.R",
     "project_path": null,
     "type": "r_source",
-    "hash": "3144651727",
+    "hash": "0",
     "contents": "",
-    "dirty": false,
+    "dirty": true,
     "created": 1710144711135.0,
     "source_on_save": false,
     "relative_order": 1,
@@ -13,7 +13,7 @@
         "tempName": "Untitled1",
         "source_window_id": "",
         "Source": "Source",
-        "cursorPosition": "11,0",
+        "cursorPosition": "8,0",
         "scrollLine": "0"
     },
     "folds": "",
@@ -21,7 +21,7 @@
     "encoding": "UTF-8",
     "collab_server": "",
     "source_window": "",
-    "last_content_update": 1710210146998,
+    "last_content_update": 1710210352589,
     "read_only": false,
     "read_only_alternatives": []
 }

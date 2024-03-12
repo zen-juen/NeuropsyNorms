@@ -49,12 +49,12 @@ sdmt_norms <- function(education, age, male=TRUE,
   # Get reference
   if (source == "Kiely2014_Aus_Written") {
 
-    df <- pivot_longer(df,
+    df <- tidyr::pivot_longer(df,
         cols = `15-19`:`85+`,
         names_to = "Age group"
       )
     df <- dplyr::rename(df, Variable = Age)
-    df <- pivot_wider(df,
+    df <- tidyr::pivot_wider(df,
         names_from = Variable,
         names_glue = "{.value}_{Variable}"
       )
