@@ -5,21 +5,29 @@ The `NeuropsyNorms` package aims to facilitate and expedite the computation of n
 ## Functionality
 `NeuropsyNorms` computes norms for:
 
-- Trail Making Test (TMT)
-- Colour Trails Test (CTT)
-- Symbol Digit Modalities Test (SDMT)
-- Controlled Oral Word Association Test (COWAT)
-- Brief Visuospatial Memory Test-Revised (BVMT-R)
-- Rey Auditory Verbal Learning Test (RAVLT)
-- California Verbal Learning Test (CVLT) - *short form only for now*
-- Repeatable Battery for the Assessment of Neuropsychological Status (RBANS)
+- Trail Making Test (TMT) `tmt_norms`
+- Colour Trails Test (CTT) `ctt_norms`
+- Symbol Digit Modalities Test (SDMT) `sdmt_norms`
+- Controlled Oral Word Association Test (COWAT) `cowat_norms`
+- Brief Visuospatial Memory Test-Revised (BVMT-R) `bvmtr_norms`
+- Rey Auditory Verbal Learning Test (RAVLT) `ravlt_norms`
+- California Verbal Learning Test (CVLT) - *short form only for now* `cvlt_norms`
+- Repeatable Battery for the Assessment of Neuropsychological Status (RBANS) `rbans_norms`
 
+## Workflow
+
+Each function has a set of parameters pertaining to:
+- Demographic information related to the patient/client: This includes `education` and `age` (both in years) and `male` (`TRUE` or `FALSE` for female).
+- `source` referring to the normative sample that norms should be based on e.g., `Tombaugh2004_Canada` for Tombaugh et al. (2004) TMT norms
+- scores specific to the test in question e.g., `trailsA` and `trailsB` for respective Trails A and B performance in seconds; `t1`, `t2`, `t3`,... `delayed_recall` arguments for RAVLT measures
+  
+  
 
 ## Normative Samples
 
-A secondary aim is to increase awareness about the nature of the normative samples that neuropsychological assessments are based on. Hence, every time you run a line of code to compute normative data, information about the reference group (i.e., sample size, language of test administration, age range, education) is printed.
+A secondary aim is to increase awareness about the nature of the normative samples that neuropsychological assessments are based on. Every time you run a line of code to compute normative data, information about the reference group (i.e., sample size, language of test administration, age range, education) is printed.
 
-A compilation of the normative studies used in this package can be found [here](https://docs.google.com/spreadsheets/d/1Cd1jCAim4IS-qomW3ujmqJ1pAh5Nk7Rsi45yh1WDcOY/edit?usp=sharing).
+You can find a compilation of the normative studies used in this package [here](https://docs.google.com/spreadsheets/d/1Cd1jCAim4IS-qomW3ujmqJ1pAh5Nk7Rsi45yh1WDcOY/edit?usp=sharing).
 
 
 ## Demonstration
