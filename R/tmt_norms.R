@@ -35,7 +35,10 @@ tmt_norms <- function(education, age, male=TRUE,
 
   
   # Get normative sample
-  data <- readxl::read_excel("../Database/TMT_Norms.xlsx", sheet=source, col_names=FALSE)
+  url <- "https://github.com/zen-juen/NeuropsyNorms/blob/main/Database/TMT_Norms.xlsx?raw=true"
+  destfile <- tempfile()
+  download.file(url, destfile, mode = 'wb')
+  data <- readxl::read_excel(destfile, sheet=source, col_names=FALSE)
   
   if (source == "Tombaugh2004_Canada") {
     print(paste("Tombaugh (2004) study ``N`` = 911 in English-speaking individuals residing in Canada aged between 18 - 89, of education (in years) of 0-12 and >12. Tests were administered in English. Scores are age-adjusted for persons between ages 18 - 54, and both age- and education-adjusted for ages 55-89."))
