@@ -9,6 +9,8 @@
 #' @return A table of standardised scores and their descriptors. Note that z-scores were computed using `(mean - x) / sd` formula, hence larger z-scores correspond to better performance.
 #' @examples
 #' out <- ctt_norms(education=10, age=55, trails1=30, trails2=40, source="Hsieh2007_China");
+#' @importFrom readxl read_excel
+#' @importFrom stringr str_extract
 #' @export
  
 ctt_norms <- function(education, age, male=TRUE,
@@ -16,20 +18,11 @@ ctt_norms <- function(education, age, male=TRUE,
                       trails1=NA, 
                       trails2=NA){
 
-  #  Load necessary packages and functions
-  if (!exists("check_packages")) {
-    source("check_packages.R")
-    check_packages(c("tidyverse", "readxl", "stringr"))
-  }
-  if (!exists("extract_demographic")) {
-    source("extract_demographic.R")
-  }
-  if (!exists("extract_descriptors")) {
-    source("extract_descriptors.R")
-  }
-  
   # Get normative sample
-  data <- read_excel("../Database/CTT_Norms.xlsx", sheet=source, col_names=FALSE)
+  url <- "https://github.com/zen-juen/NeuropsyNorms/blob/main/Database/CTT_Norms.xlsx?raw=true"
+  destfile <- tempfile()
+  download.file(url, destfile, mode = 'wb')
+  data <- readxl::read_excel(destfile, sheet=source, col_names=FALSE)
   
   if (source == "Lee2012_Singapore") {
     print(paste("Lee et al. (2012) study ``N`` = 525 in Elderly Chinese individuals residing in Singapore aged between 54 - ≥75, education (in years) of 0 to >6. Tests were administered in different local languages (not taken into account in the norms reported). Scores are both age- and education-adjusted. Warning: groups may be even smaller after education and age group stratification."))
@@ -80,8 +73,8 @@ ctt_norms <- function(education, age, male=TRUE,
   
   # Colour Trails 1
   if (!is.na(trails1)) {
-    trails1_mean = reference[str_detect(colnames(reference), "(trail1).+(mean)")]
-    trails1_sd = reference[str_detect(colnames(reference), "(trail1).+(sd)")]
+    trails1_mean = reference[stringr::str_detect(colnames(reference), "(trail1).+(mean)")]
+    trails1_sd = reference[stringr::str_detect(colnames(reference), "(trail1).+(sd)")]
     trails1_zscore = (as.numeric(trails1_mean) - trails1) / as.numeric(trails1_sd)
   } else {
     trails1_zscore = NA
@@ -89,8 +82,8 @@ ctt_norms <- function(education, age, male=TRUE,
   
   # Colour Trails 2
   if (!is.na(trails2)) {
-    trails2_mean = reference[str_detect(colnames(reference), "(trail2).+(mean)")]
-    trails2_sd = reference[str_detect(colnames(reference), "(trail2).+(sd)")]
+    trails2_mean = reference[stringr::str_detect(colnames(reference), "(trail2).+(mean)")]
+    trails2_sd = reference[stringr::str_detect(colnames(reference), "(trail2).+(sd)")]
     trails2_zscore = (as.numeric(trails2_mean) - trails2) / as.numeric(trails2_sd)
   } else {
     trails2_zscore = NA

@@ -1,0 +1,11 @@
+library(devtools) # Make sure that the devtools library is loaded
+install_github("zen-juen/NeuropsyNorms")
+library(NeuropsyNorms)
+
+bvmtr_norms(education=10,age=55, male=TRUE, t1=5)
+
+NeuropsyNorms::tmt_norms(education=10, age=55, male=TRUE, trailsA=50, trailsB=50)
+NeuropsyNorms::tmt_norms(education=10, age=55, male=TRUE, trailsA=50, trailsB=50)
+NeuropsyNorms::cowat_norms(education=10,age=55, male=TRUE, fas_score = 10, animals_score = 10)
+
+use_github()

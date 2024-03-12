@@ -16,7 +16,11 @@
 #' @param recog_discrimination Recognition discrimination index (Recognition Hits - Recognition False Alarms).
 #' @return A table of standardised scores and their descriptors.
 #' @examples
-#' out1 <- bvmt_norms(education=10, age=55, t1=5, t2=5, t3=6, total=13, delayed_recall=10, source="Benedict1997_US");
+#' out <- bvmtr_norms(education=10, age=55, t1=5, t2=5, t3=6, total=13, delayed_recall=10, source="Benedict1997_US");
+#' @importFrom readxl read_excel
+#' @importFrom tidyr pivot_wider
+#' @importFrom stringr str_extract
+#' @importFrom dplyr select
 #' @export
 
 bvmtr_norms <- function(education, age, male=TRUE,
@@ -25,21 +29,12 @@ bvmtr_norms <- function(education, age, male=TRUE,
                         learning=NA, total=NA, delayed_recall=NA,
                         percent_retained=NA,
                         recog_correct=NA, recog_FA=NA, recog_discrimination=NA){
-  
-  #  Load necessary packages and functions
-  if (!exists("check_packages")) {
-    source("check_packages.R")
-    check_packages(c("tidyverse", "readxl", "tidyr", "stringr"))
-  }
-  if (!exists("extract_demographic")) {
-    source("extract_demographic.R")
-  }
-  if (!exists("extract_descriptors")) {
-    source("extract_descriptors.R")
-  }
-  
+
   # Get normative samples
-  data <- read_excel("../Database/BVMT-R_Norms.xlsx", sheet=source, col_names=FALSE)
+  url <- "https://github.com/zen-juen/NeuropsyNorms/blob/main/Database/BVMT-R_Norms.xlsx?raw=true"
+  destfile <- tempfile()
+  download.file(url, destfile, mode = 'wb')
+  data <- readxl::read_excel(destfile, sheet=source, col_names=FALSE)
   
   if (source == "Lee2012_Singapore") {
     print(paste("Lee et al. (2012) study ``N`` = 525 in Elderly Chinese individuals residing in Singapore aged between 54 - ≥75, education (in years) of 0 to >6. Tests were administered in different local languages (not taken into account in the norms reported). Scores are both age- and education-adjusted. Warning: groups may be even smaller after education and age group stratification."))
@@ -73,13 +68,14 @@ bvmtr_norms <- function(education, age, male=TRUE,
   } else if (source == "Benedict1997_US"){
     # Get reference
     ref_group <- data[data$`Age group` == age, ]
-    ref_group <- ref_group %>% 
-      select(-Education, -Age) %>% 
-      pivot_wider(names_from = Variable,
-                  names_glue = "{.value}_{Variable}",
-                  values_from = c(T1, T2, T3, Total,
-                                  Learning, DelayedRecall, PercentRetained,
-                                  RecogHits, RecogFA, Recog_DiscriminationIndex, Recog_ResponseBias))
+    ref_group <- dplyr::select(ref_group, -Education, -Age)
+    ref_group <- tidyr::pivot_wider(ref_group,
+                                    names_from = Variable,
+                                    names_glue = "{.value}_{Variable}",
+                                    values_from = c(T1, T2, T3, Total,
+                                                    Learning, DelayedRecall, PercentRetained,
+                                                    RecogHits, RecogFA, Recog_DiscriminationIndex, Recog_ResponseBias))
+    
   }
   
   colnames(ref_group) <- tolower(colnames(ref_group))
@@ -93,9 +89,6 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   extract_descriptors(out)
 }
-
-
-
 
 
 
@@ -119,10 +112,10 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Trial 1
   if (!is.na(t1)) {
-    exclude_colnames <- colnames(reference[str_detect(colnames(reference), "t1-t3")])
+    exclude_colnames <- colnames(reference[stringr::str_detect(colnames(reference), "t1-t3")])
     ref_t1 <- reference[!(colnames(reference) %in% exclude_colnames)]
-    t1_mean = ref_t1[str_detect(colnames(ref_t1), "(^t1).+(mean)")]
-    t1_sd = ref_t1[str_detect(colnames(ref_t1), "(^t1).+(sd)")]
+    t1_mean = ref_t1[stringr::str_detect(colnames(ref_t1), "(^t1).+(mean)")]
+    t1_sd = ref_t1[stringr::str_detect(colnames(ref_t1), "(^t1).+(sd)")]
     t1_zscore = (t1 - as.numeric(t1_mean[[1]])) / as.numeric(t1_sd)
   } else {
     t1_zscore = NA
@@ -130,8 +123,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Trial 2
   if (!is.na(t2)) {
-    t2_mean = reference[str_detect(colnames(reference), "(^t2).+(mean)")]
-    t2_sd = reference[str_detect(colnames(reference), "(^t2).+(sd)")]
+    t2_mean = reference[stringr::str_detect(colnames(reference), "(^t2).+(mean)")]
+    t2_sd = reference[stringr::str_detect(colnames(reference), "(^t2).+(sd)")]
     t2_zscore = (t2 - as.numeric(t2_mean[[1]])) / as.numeric(t2_sd[[1]])
   } else {
     t2_zscore = NA
@@ -139,8 +132,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Trial 3
   if (!is.na(t3)) {
-    t3_mean = reference[str_detect(colnames(reference), "(^t3).+(mean)")]
-    t3_sd = reference[str_detect(colnames(reference), "(^t3).+(sd)")]
+    t3_mean = reference[stringr::str_detect(colnames(reference), "(^t3).+(mean)")]
+    t3_sd = reference[stringr::str_detect(colnames(reference), "(^t3).+(sd)")]
     t3_zscore = (t3 - as.numeric(t3_mean[[1]])) / as.numeric(t3_sd[[1]])
   } else {
     t3_zscore = NA
@@ -148,8 +141,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Total
   if (!is.na(total)) {
-    total_mean = reference[str_detect(colnames(reference), "(^t1-t3).+(mean)|(^total).+(mean)")]
-    total_sd = reference[str_detect(colnames(reference), "(^t1-t3).+(sd)|(^total).+(sd)")]
+    total_mean = reference[stringr::str_detect(colnames(reference), "(^t1-t3).+(mean)|(^total).+(mean)")]
+    total_sd = reference[stringr::str_detect(colnames(reference), "(^t1-t3).+(sd)|(^total).+(sd)")]
     total_zscore = (total - as.numeric(total_mean[[1]])) / as.numeric(total_sd[[1]])
   } else {
     total_zscore = NA
@@ -157,8 +150,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Learning
   if (!is.na(learning)) {
-    learning_mean = reference[str_detect(colnames(reference), "(^learning).+(mean)")]
-    learning_sd = reference[str_detect(colnames(reference), "(^learning).+(sd)")]
+    learning_mean = reference[stringr::str_detect(colnames(reference), "(^learning).+(mean)")]
+    learning_sd = reference[stringr::str_detect(colnames(reference), "(^learning).+(sd)")]
     learning_zscore = (learning - as.numeric(learning_mean[[1]])) / as.numeric(learning_sd[[1]])
   } else {
     learning_zscore = NA
@@ -166,8 +159,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Delayed recall
   if (!is.na(delayed_recall)) {
-    delayed_recall_mean = reference[str_detect(colnames(reference), "(^delay).+(mean)")]
-    delayed_recall_sd = reference[str_detect(colnames(reference), "(^delay).+(sd)")]
+    delayed_recall_mean = reference[stringr::str_detect(colnames(reference), "(^delay).+(mean)")]
+    delayed_recall_sd = reference[stringr::str_detect(colnames(reference), "(^delay).+(sd)")]
     delayed_recall_zscore = (delayed_recall - as.numeric(delayed_recall_mean[[1]])) / as.numeric(delayed_recall_sd[[1]])
   } else {
     delayed_recall_zscore = NA
@@ -175,8 +168,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Percent Retained
   if (!is.na(percent_retained)) {
-    percent_retained_mean = reference[str_detect(colnames(reference), "(^percentretained).+(mean)")]
-    percent_retained_sd = reference[str_detect(colnames(reference), "(^percentretained).+(sd)")]
+    percent_retained_mean = reference[stringr::str_detect(colnames(reference), "(^percentretained).+(mean)")]
+    percent_retained_sd = reference[stringr::str_detect(colnames(reference), "(^percentretained).+(sd)")]
     percent_retained_zscore = (percent_retained - as.numeric(percent_retained_mean[[1]])) / as.numeric(percent_retained_sd[[1]])
   } else {
     percent_retained_zscore = NA
@@ -184,8 +177,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Recognition Correct
   if (!is.na(recog_correct)) {
-    recog_correct_mean = reference[str_detect(colnames(reference), "(^recogcorrect).+(mean)|(^recoghits).+(mean)")]
-    recog_correct_sd = reference[str_detect(colnames(reference), "(^recogcorrect).+(sd)|(^recoghits).+(sd)")]
+    recog_correct_mean = reference[stringr::str_detect(colnames(reference), "(^recogcorrect).+(mean)|(^recoghits).+(mean)")]
+    recog_correct_sd = reference[stringr::str_detect(colnames(reference), "(^recogcorrect).+(sd)|(^recoghits).+(sd)")]
     recog_correct_zscore = (recog_correct - as.numeric(recog_correct_mean[[1]])) / as.numeric(recog_correct_sd)
   } else {
     recog_correct_zscore = NA
@@ -193,8 +186,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Recognition FA
   if (!is.na(recog_FA)) {
-    recog_FA_mean = reference[str_detect(colnames(reference), "(^recogfa).+(mean)|(^falsealarms).+(mean)")]
-    recog_FA_sd = reference[str_detect(colnames(reference), "(^recogfa).+(sd)|(^falsealarms).+(sd)")]
+    recog_FA_mean = reference[stringr::str_detect(colnames(reference), "(^recogfa).+(mean)|(^falsealarms).+(mean)")]
+    recog_FA_sd = reference[stringr::str_detect(colnames(reference), "(^recogfa).+(sd)|(^falsealarms).+(sd)")]
     recog_FA_zscore = (recog_FA - as.numeric(recog_FA_mean[[1]])) / as.numeric(recog_FA_sd)
   } else {
     recog_FA_zscore = NA
@@ -202,8 +195,8 @@ bvmtr_norms <- function(education, age, male=TRUE,
   
   # Discrimination Index
   if (!is.na(recog_discrimination)) {
-    recog_discrimination_mean = reference[str_detect(colnames(reference), "(discrimination).+(mean)")]
-    recog_discrimination_sd = reference[str_detect(colnames(reference), "(discrimination).+(sd)")]
+    recog_discrimination_mean = reference[stringr::str_detect(colnames(reference), "(discrimination).+(mean)")]
+    recog_discrimination_sd = reference[stringr::str_detect(colnames(reference), "(discrimination).+(sd)")]
     recog_discrimination_zscore = (recog_discrimination - as.numeric(recog_discrimination_mean[[1]])) / as.numeric(recog_discrimination_sd[[1]])
   } else {
     recog_discrimination_zscore = NA
