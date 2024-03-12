@@ -22,18 +22,6 @@ tmt_norms <- function(education, age, male=TRUE,
                       trailsA=NA, 
                       trailsB=NA){
 
-  #  Load necessary packages and functions
-  # if (!exists("check_packages")) {
-  #   source("check_packages.R")
-  #   check_packages(c("tidyverse", "readxl", "readr", "tidyr", "stringr"))
-  # }
-  # if (!exists("extract_demographic")) {
-  #   source("extract_demographic.R")
-  # }
-  # if (!exists("extract_descriptors")) {
-  #   source("extract_descriptors.R")
-
-  
   # Get normative sample
   url <- "https://github.com/zen-juen/NeuropsyNorms/blob/main/Database/TMT_Norms.xlsx?raw=true"
   destfile <- tempfile()

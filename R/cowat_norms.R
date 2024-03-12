@@ -8,25 +8,14 @@
 #' @param animals_score Animals score.
 #' @return A table of standardised scores and their descriptors.
 #' @examples
-#' out1 <- cowat_norms(education=10, age=55, fas_score=NA, animals_score=20, source="Tombaugh1999_Canada";
+#' out1 <- cowat_norms(education=10, age=55, fas_score=NA, animals_score=20, source="Tombaugh1999_Canada");
 #' out2 <- cowat_norms(education=10, age=91, fas_score=50, animals_score=NA, source="Whittle2007_US");
+#' @importFrom readxl read_excel
 #' @export
 
 cowat_norms <- function(education, age, male=TRUE,
                         source="Tombaugh1999_Canada",
                         fas_score=NA, animals_score=NA){
-  
-  #  Load necessary packages and functions
-  if (!exists("check_packages")) {
-    source("check_packages.R")
-    check_packages(c("tidyverse", "readxl"))
-  }
-  if (!exists("extract_demographic")) {
-    source("extract_demographic.R")
-  }
-  if (!exists("extract_descriptors")) {
-    source("extract_descriptors.R")
-  }
   
   if (source == "Tombaugh1999_Canada") {
     print(paste("Tombaugh et al. (1999) study ``N`` = 1300 in English-speaking individuals residing in Canada aged between 16 - 95, education (in years) of 0 to 21. Scores are age- and education-adjusted. Tests were administered in English. Warning: Small ``N`` of 12 (FAS) and 4 (Animals) for group aged 16-59 with 0-8 years of education."))
@@ -36,9 +25,13 @@ cowat_norms <- function(education, age, male=TRUE,
     print(paste("Error: Other sources/norms not available at the moment."))
   }
 
+  url <- "https://github.com/zen-juen/NeuropsyNorms/blob/main/Database/COWAT_Norms.xlsx?raw=true"
+  destfile <- tempfile()
+  download.file(url, destfile, mode = 'wb')
+
   # Extract normative sample for FAS
   if (!is.na(fas_score)) {
-    data <- read_excel("../Database/COWAT_Norms.xlsx", sheet=paste0(source, " - FAS"), col_names=FALSE)
+    data <- readxl::read_excel(destfile, sheet=paste0(source, " - FAS"), col_names=FALSE)
     # tidy df
     if (source == "Tombaugh1999_Canada") {
       df <- t(data)
@@ -53,7 +46,7 @@ cowat_norms <- function(education, age, male=TRUE,
     
   # Extract normative sample for Animals
   if (!is.na(animals_score)) {
-    data <- read_excel("Database/COWAT_Norms.xlsx", sheet=paste0(source, " - Animals"), col_names=FALSE)
+    data <- readxl::read_excel(destfile, sheet=paste0(source, " - Animals"), col_names=FALSE)
     # tidy df
     if (source == "Tombaugh1999_Canada") {
       df <- t(data)

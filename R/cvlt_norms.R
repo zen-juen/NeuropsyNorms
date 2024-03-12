@@ -20,7 +20,11 @@
 #' @param recog_FA Recognition False Alarms.
 #' @return A table of standardised scores and their descriptors.
 #' @examples
-#' out1 <- cvlt_norms(education=10, age=80, t1=5, t2=5, t3=6, t4=6, total=22, delayed_free_recall=10);
+#' out <- cvlt_norms(education=10, age=90, t1=5, t2=5, t3=6, t4=6, total=22, delayed_free_recall=10);
+#' @importFrom readxl read_excel
+#' @importFrom tidyr pivot_wider
+#' @importFrom stringr str_extract
+#' @importFrom dplyr select
 #' @export
  
 cvlt_norms <- function(education, age, male=TRUE,
@@ -30,17 +34,6 @@ cvlt_norms <- function(education, age, male=TRUE,
                        delayed_cued_recall=NA,
                        recog_correct=NA, recog_FA=NA){
   
-  #  Load necessary packages and functions
-  if (!exists("check_packages")) {
-    source("check_packages.R")
-    check_packages(c("tidyverse", "readxl", "tidyr", "stringr"))
-  }
-  if (!exists("extract_demographic")) {
-    source("extract_demographic.R")
-  }
-  if (!exists("extract_descriptors")) {
-    source("extract_descriptors.R")
-  }
   
   # Extract correct version and form
   if (tolower(form) == "standard") {
@@ -49,8 +42,11 @@ cvlt_norms <- function(education, age, male=TRUE,
     get = paste0("CVLT", version, "SF")
   }
    
-  data <- read_excel("../Database/CVLT_Norms.xlsx", sheet=paste0(source, " - ", get), col_names=FALSE)
-  
+  url <- "https://github.com/zen-juen/NeuropsyNorms/blob/main/Database/CVLT_Norms.xlsx?raw=true"
+  destfile <- tempfile()
+  download.file(url, destfile, mode = 'wb')
+  data <- readxl::read_excel(destfile, sheet=paste0(source, " - ", get), col_names=FALSE)
+
   # Get normative samples
   if (source == "Whittle2007_US") {
     print(paste("Whittle et al. (2007) ``N`` = 339  (The 90+ Study) in English-speaking individuals residing in US aged between 90 - 103. Only the letter `F` was administered as part of letter fluency to avoid fatigue. Scores are age-adjusted. The assessment was administered in English. Scores are age-adjusted."))
@@ -70,11 +66,11 @@ cvlt_norms <- function(education, age, male=TRUE,
     df <- as.data.frame(data[-1, ])
     # Get reference
     ref_group <- df[df$Age == age, ]
-    ref_group <- ref_group %>% 
-      select(-`5%`, -`10%`, -`25%`, -`50%`, -`75%`, -`90%`, -`95%`, -`Sample Size`) %>% 
-      pivot_wider(names_from = Measure,
-                  names_glue = "{Measure}_{.value}",
-                  values_from = c(Mean, SD))
+    ref_group <- dplyr::select(ref_group, -`5%`, -`10%`, -`25%`, -`50%`, -`75%`, -`90%`, -`95%`, -`Sample Size`)
+    ref_group <- tidyr::pivot_wider(ref_group,
+                                    names_from = Measure,
+                                    names_glue = "{Measure}_{.value}",
+                                    values_from = c(Mean, SD))
   }
   
   colnames(ref_group) <- tolower(colnames(ref_group))
@@ -109,10 +105,10 @@ cvlt_norms <- function(education, age, male=TRUE,
 
   # Trial 1
   if (!is.na(t1)) {
-    exclude_colnames <- colnames(reference[str_detect(colnames(reference), "t4|t5")])
+    exclude_colnames <- colnames(reference[stringr::str_detect(colnames(reference), "t4|t5")])
     ref_t1 <- reference[!(colnames(reference) %in% exclude_colnames)]
-    t1_mean = ref_t1[str_detect(colnames(ref_t1), "(^t1).+(mean)")]
-    t1_sd = ref_t1[str_detect(colnames(ref_t1), "(^t1).+(sd)")]
+    t1_mean = ref_t1[stringr::str_detect(colnames(ref_t1), "(^t1).+(mean)")]
+    t1_sd = ref_t1[stringr::str_detect(colnames(ref_t1), "(^t1).+(sd)")]
     t1_zscore = (t1 - as.numeric(t1_mean[[1]])) / as.numeric(t1_sd)
   } else {
     t1_zscore = NA
@@ -120,8 +116,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Trial 2
   if (!is.na(t2)) {
-    t2_mean = reference[str_detect(colnames(reference), "(^t2).+(mean)")]
-    t2_sd = reference[str_detect(colnames(reference), "(^t2).+(sd)")]
+    t2_mean = reference[stringr::str_detect(colnames(reference), "(^t2).+(mean)")]
+    t2_sd = reference[stringr::str_detect(colnames(reference), "(^t2).+(sd)")]
     t2_zscore = (t2 - as.numeric(t2_mean[[1]])) / as.numeric(t2_sd[[1]])
   } else {
     t2_zscore = NA
@@ -129,8 +125,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Trial 3
   if (!is.na(t3)) {
-    t3_mean = reference[str_detect(colnames(reference), "(^t3).+(mean)")]
-    t3_sd = reference[str_detect(colnames(reference), "(^t3).+(sd)")]
+    t3_mean = reference[stringr::str_detect(colnames(reference), "(^t3).+(mean)")]
+    t3_sd = reference[stringr::str_detect(colnames(reference), "(^t3).+(sd)")]
     t3_zscore = (t3 - as.numeric(t3_mean[[1]])) / as.numeric(t3_sd[[1]])
   } else {
     t3_zscore = NA
@@ -138,8 +134,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Trial 4
   if (!is.na(t4)) {
-    t4_mean = reference[str_detect(colnames(reference), "(^t4).+(mean)")]
-    t4_sd = reference[str_detect(colnames(reference), "(^t4).+(sd)")]
+    t4_mean = reference[stringr::str_detect(colnames(reference), "(^t4).+(mean)")]
+    t4_sd = reference[stringr::str_detect(colnames(reference), "(^t4).+(sd)")]
     t4_zscore = (t4 - as.numeric(t4_mean[[1]])) / as.numeric(t4_sd[[1]])
   } else {
     t4_zscore = NA
@@ -147,8 +143,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Trial 5
   if (!is.na(t5)) {
-    t5_mean = reference[str_detect(colnames(reference), "(^t5).+(mean)")]
-    t5_sd = reference[str_detect(colnames(reference), "(^t5).+(sd)")]
+    t5_mean = reference[stringr::str_detect(colnames(reference), "(^t5).+(mean)")]
+    t5_sd = reference[stringr::str_detect(colnames(reference), "(^t5).+(sd)")]
     t5_zscore = (t5 - as.numeric(t5_mean[[1]])) / as.numeric(t5_sd[[1]])
   } else {
     t5_zscore = NA
@@ -156,8 +152,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # List B
   if (!is.na(listB)) {
-    listb_mean = reference[str_detect(colnames(reference), "(^listb).+(mean)")]
-    listb_sd = reference[str_detect(colnames(reference), "(^listb).+(sd)")]
+    listb_mean = reference[stringr::str_detect(colnames(reference), "(^listb).+(mean)")]
+    listb_sd = reference[stringr::str_detect(colnames(reference), "(^listb).+(sd)")]
     listb_zscore = (listB - as.numeric(listb_mean[[1]])) / as.numeric(listb_sd[[1]])
   } else {
     listb_zscore = NA
@@ -165,8 +161,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Trial 6
   if (!is.na(t6)) {
-    t6_mean = reference[str_detect(colnames(reference), "(^t6).+(mean)")]
-    t6_sd = reference[str_detect(colnames(reference), "(^t6).+(sd)")]
+    t6_mean = reference[stringr::str_detect(colnames(reference), "(^t6).+(mean)")]
+    t6_sd = reference[stringr::str_detect(colnames(reference), "(^t6).+(sd)")]
     t6_zscore = (t6 - as.numeric(t6_mean[[1]])) / as.numeric(t6_sd[[1]])
   } else {
     t6_zscore = NA
@@ -174,8 +170,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Totals (T1 to T5)
   if (!is.na(total)) {
-    total_mean = reference[str_detect(colnames(reference), "(^t1-t4).+(mean)|(^t1-t5).+(mean)|(^.total).+(mean)")]
-    total_sd = reference[str_detect(colnames(reference), "(^t1-t4).+(mean)|(^t1-t5).+(sd)|(^.total).+(sd)")]
+    total_mean = reference[stringr::str_detect(colnames(reference), "(^t1-t4).+(mean)|(^t1-t5).+(mean)|(^.total).+(mean)")]
+    total_sd = reference[stringr::str_detect(colnames(reference), "(^t1-t4).+(mean)|(^t1-t5).+(sd)|(^.total).+(sd)")]
     total_zscore = (total - as.numeric(total_mean[[1]])) / as.numeric(total_sd[[1]])
   } else {
     total_zscore = NA
@@ -183,8 +179,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Delayed free recall
   if (!is.na(delayed_free_recall)) {
-    delayed_free_recall_mean = reference[str_detect(colnames(reference), "(freerecall).+(mean)")]
-    delayed_free_recall_sd = reference[str_detect(colnames(reference), "(freerecall).+(sd)")]
+    delayed_free_recall_mean = reference[stringr::str_detect(colnames(reference), "(freerecall).+(mean)")]
+    delayed_free_recall_sd = reference[stringr::str_detect(colnames(reference), "(freerecall).+(sd)")]
     delayed_free_recall_zscore = (delayed_free_recall - as.numeric(delayed_free_recall_mean[[1]])) / as.numeric(delayed_free_recall_sd[[1]])
   } else {
     delayed_free_recall_zscore = NA
@@ -192,8 +188,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Delayed cued recall
   if (!is.na(delayed_cued_recall)) {
-    delayed_cued_mean = reference[str_detect(colnames(reference), "(cued).+(mean)")]
-    delayed_cued_sd = reference[str_detect(colnames(reference), "(cued).+(sd)")]
+    delayed_cued_mean = reference[stringr::str_detect(colnames(reference), "(cued).+(mean)")]
+    delayed_cued_sd = reference[stringr::str_detect(colnames(reference), "(cued).+(sd)")]
     delayed_cued_zscore = (delayed_cued_recall - as.numeric(delayed_cued_mean[[1]])) / as.numeric(delayed_cued_sd[[1]])
   } else {
     delayed_cued_zscore = NA
@@ -202,8 +198,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Recognition Correct
   if (!is.na(recog_correct)) {
-    recog_correct_mean = reference[str_detect(colnames(reference), "(^recogcorrect).+(mean)|(^recoghits).+(mean)")]
-    recog_correct_sd = reference[str_detect(colnames(reference), "(^recogcorrect).+(sd)|(^recoghits).+(sd)")]
+    recog_correct_mean = reference[stringr::str_detect(colnames(reference), "(^recogcorrect).+(mean)|(^recoghits).+(mean)")]
+    recog_correct_sd = reference[stringr::str_detect(colnames(reference), "(^recogcorrect).+(sd)|(^recoghits).+(sd)")]
     recog_correct_zscore = (recog_correct - as.numeric(recog_correct_mean[[1]])) / as.numeric(recog_correct_sd)
   } else {
     recog_correct_zscore = NA
@@ -211,8 +207,8 @@ cvlt_norms <- function(education, age, male=TRUE,
   
   # Recognition FA
   if (!is.na(recog_FA)) {
-    recog_FA_mean = reference[str_detect(colnames(reference), "(^recogfa).+(mean)|(^falsealarms).+(mean)")]
-    recog_FA_sd = reference[str_detect(colnames(reference), "(^recogfa).+(sd)|(^falsealarms).+(sd)")]
+    recog_FA_mean = reference[stringr::str_detect(colnames(reference), "(^recogfa).+(mean)|(^falsealarms).+(mean)")]
+    recog_FA_sd = reference[stringr::str_detect(colnames(reference), "(^recogfa).+(sd)|(^falsealarms).+(sd)")]
     recog_FA_zscore = (recog_FA - as.numeric(recog_FA_mean[[1]])) / as.numeric(recog_FA_sd)
   } else {
     recog_FA_zscore = NA
