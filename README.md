@@ -1,6 +1,10 @@
 # NeuropsyNorms
 The `NeuropsyNorms` package aims to facilitate and expedite the computation of normative data for neuropsychological assessments. It is an open-source software that is still in its preliminary stages. In the spirit of open science, this project is open to contributors from different disciplines (e.g., neuropsychologists, neuroscientists, psychologists, statisticians). If that sounds like you, feel free to open an issue on this repository or drop an email!
 
+**Some future directions**
+- User interface/app form for clinicians not familiar with R
+- Increase normative database
+- Graphical functionalities
 
 ## Functionality
 `NeuropsyNorms` computes norms for:
@@ -54,6 +58,7 @@ This gives the following output:
 TrailsA         30 0.4661792       Average
 TrailsB         40 2.0345731 Very Superior
 ```
+
 
 
 
