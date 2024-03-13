@@ -1,6 +1,6 @@
 Package: NeuropsyNorms
 Type: Package
 Title: Automated Norming of Neuropsychological Assessment Data
-Version: 0.0.1.0
+Version: 0.0.1.1
 RoxygenNote: 7.2.0
 Encoding: UTF-8
